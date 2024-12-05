@@ -1,0 +1,14 @@
+name = "windsurf-shop"
+type = "webpack"
+account_id = "" # 你的 Cloudflare 账户 ID
+workers_dev = true
+route = ""
+zone_id = "" # 你的域名 Zone ID
+
+[site]
+bucket = "./build"
+entry-point = "workers-site"
+
+[env.production]
+workers_dev = false
+route = "your-domain.com/*" # 替换为你的域名
