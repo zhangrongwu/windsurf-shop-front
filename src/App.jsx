@@ -15,6 +15,8 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 function App() {
   return (
@@ -27,7 +29,9 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/products/:slug" element={<ProductDetail />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

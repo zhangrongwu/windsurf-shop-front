@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBagIcon, MenuIcon, XIcon } from '@heroicons/react/outline';
+import { ShoppingBagIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
 
 const navigation = [
@@ -55,9 +55,9 @@ export default function Navbar() {
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? (
-                <XIcon className="block h-6 w-6" />
+                <XMarkIcon className="block h-6 w-6" />
               ) : (
-                <MenuIcon className="block h-6 w-6" />
+                <Bars3Icon className="block h-6 w-6" />
               )}
             </button>
           </div>
