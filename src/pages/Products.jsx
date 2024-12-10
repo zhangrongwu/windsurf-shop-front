@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  AdjustmentsHorizontalIcon, 
   FunnelIcon 
 } from '@heroicons/react/24/outline';
 
@@ -90,11 +89,11 @@ export default function Products() {
   }, [selectedCategory, selectedSkillLevel, sortBy, searchQuery]);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gray-50">
+      <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
+          <h1 className="mb-4 text-4xl font-extrabold text-gray-900">
             Windsurf Equipment
           </h1>
           <p className="text-xl text-gray-600">
@@ -104,7 +103,7 @@ export default function Products() {
 
         {/* Filters and Search */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex flex-col justify-between items-center space-y-4 md:flex-row md:space-y-0">
             {/* Search Input */}
             <div className="w-full md:w-1/3">
               <input
@@ -112,7 +111,7 @@ export default function Products() {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                className="px-4 py-2 w-full rounded-md border border-gray-300 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -121,7 +120,7 @@ export default function Products() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                className="px-4 py-2 rounded-md border border-gray-300 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -130,9 +129,9 @@ export default function Products() {
 
               <button 
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                className="flex items-center px-4 py-2 text-white rounded-md bg-primary-600 hover:bg-primary-700"
               >
-                <FunnelIcon className="h-5 w-5 mr-2" />
+                <FunnelIcon className="mr-2 w-5 h-5" />
                 Filters
               </button>
             </div>
@@ -140,16 +139,16 @@ export default function Products() {
 
           {/* Advanced Filters */}
           {showFilters && (
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 mt-4 md:grid-cols-4">
               {/* Category Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
                   Category
                 </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  className="px-4 py-2 w-full rounded-md border border-gray-300"
                 >
                   {categories.map(category => (
                     <option key={category} value={category}>
@@ -161,13 +160,13 @@ export default function Products() {
 
               {/* Skill Level Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
                   Skill Level
                 </label>
                 <select
                   value={selectedSkillLevel}
                   onChange={(e) => setSelectedSkillLevel(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  className="px-4 py-2 w-full rounded-md border border-gray-300"
                 >
                   {skillLevels.map(level => (
                     <option key={level} value={level}>
@@ -181,20 +180,20 @@ export default function Products() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedProducts.map((product) => (
             <div 
               key={product.id} 
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+              className="overflow-hidden bg-white rounded-lg shadow-md transition-shadow duration-300 hover:shadow-xl"
             >
               <div className="relative">
                 <img 
                   src={product.image} 
                   alt={product.name} 
-                  className="w-full h-64 object-cover"
+                  className="object-cover w-full h-64"
                 />
                 {!product.inStock && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs">
+                  <div className="absolute top-2 right-2 px-2 py-1 text-xs text-white bg-red-500 rounded-md">
                     Out of Stock
                   </div>
                 )}
@@ -204,11 +203,11 @@ export default function Products() {
                   <h3 className="text-lg font-semibold text-gray-900">
                     {product.name}
                   </h3>
-                  <span className="text-primary-600 font-bold">
+                  <span className="font-bold text-primary-600">
                     ${product.price.toFixed(2)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="mb-2 text-sm text-gray-600">
                   {product.description}
                 </p>
                 <div className="flex justify-between items-center">
@@ -217,7 +216,7 @@ export default function Products() {
                   </span>
                   <Link 
                     to={`/products/${product.id}`} 
-                    className="text-primary-600 hover:text-primary-800 font-medium"
+                    className="font-medium text-primary-600 hover:text-primary-800"
                   >
                     View Details
                   </Link>
@@ -229,7 +228,7 @@ export default function Products() {
 
         {/* No Results */}
         {filteredAndSortedProducts.length === 0 && (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <p className="text-xl text-gray-600">
               No products found matching your search and filters.
             </p>
