@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: 'https://api.windsurfshop.com/v1',
+  baseURL: process.env.REACT_APP_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
