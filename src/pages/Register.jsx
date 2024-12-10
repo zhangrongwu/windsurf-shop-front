@@ -18,23 +18,20 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
-    }
-
     setLoading(true);
 
+    // 这里可以添加表单验证逻辑
+    if (formData.password !== formData.confirmPassword) {
+      setError('密码不匹配');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await register({
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      });
-      navigate('/');
-    } catch (error) {
-      setError(error.message || 'Failed to create account');
+      await register(formData.email, formData.password, formData.firstName, formData.lastName);
+      navigate('/'); // 注册成功后重定向到主页
+    } catch (err) {
+      setError('注册失败，请检查您的信息。');
     } finally {
       setLoading(false);
     }
@@ -89,7 +86,7 @@ export default function Register() {
                   type="text"
                   required
                   className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-tl-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                  placeholder="First name"
+                  placeholder="名字"
                   value={formData.firstName}
                   onChange={handleChange}
                 />
@@ -104,7 +101,7 @@ export default function Register() {
                   type="text"
                   required
                   className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-tr-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                  placeholder="Last name"
+                  placeholder="姓氏"
                   value={formData.lastName}
                   onChange={handleChange}
                 />
@@ -120,7 +117,7 @@ export default function Register() {
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="电子邮件"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -135,7 +132,7 @@ export default function Register() {
                 type="password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                placeholder="密码"
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -150,7 +147,7 @@ export default function Register() {
                 type="password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm password"
+                placeholder="确认密码"
                 value={formData.confirmPassword}
                 onChange={handleChange}
               />
@@ -163,10 +160,13 @@ export default function Register() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? '注册中...' : '注册'}
             </button>
           </div>
         </form>
+        <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+          已有账户？登录
+        </Link>
       </div>
     </div>
   );
