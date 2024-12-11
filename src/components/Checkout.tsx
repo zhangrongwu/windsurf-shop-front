@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useError } from '../contexts/ErrorContext';
+import useErrorHandler from '../hooks/useErrorHandler';
 
 interface ShippingForm {
   firstName: string;
@@ -19,6 +21,8 @@ const Checkout: React.FC = () => {
   const { state: cartState, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { handleError } = useErrorHandler();
+  const [isProcessing, setIsProcessing] = useState(false);
   const [shippingInfo, setShippingInfo] = useState<ShippingForm>({
     firstName: '',
     lastName: '',
@@ -38,8 +42,45 @@ const Checkout: React.FC = () => {
     }));
   };
 
+  const validateShippingInfo = () => {
+    const requiredFields = [
+      'firstName',
+      'lastName',
+      'address',
+      'city',
+      'state',
+      'postalCode',
+      'country',
+      'phone',
+    ];
+
+    const missingFields = requiredFields.filter(field => !shippingInfo[field as keyof ShippingForm]);
+    if (missingFields.length > 0) {
+      throw new Error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+    }
+
+    if (!/^\d{5}(-\d{4})?$/.test(shippingInfo.postalCode)) {
+      throw new Error('Please enter a valid postal code (e.g., 12345 or 12345-6789)');
+    }
+
+    if (!/^\+?[\d\s-]{10,}$/.test(shippingInfo.phone)) {
+      throw new Error('Please enter a valid phone number');
+    }
+  };
+
   const createOrder = async () => {
     try {
+      setIsProcessing(true);
+      validateShippingInfo();
+
+      if (!user) {
+        throw new Error('Please log in to complete your purchase');
+      }
+
+      if (cartState.items.length === 0) {
+        throw new Error('Your cart is empty');
+      }
+
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -53,18 +94,22 @@ const Checkout: React.FC = () => {
             price: item.price,
           })),
           shippingInfo,
+          total: cartState.total,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create order');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create order');
       }
 
-      const { order, paypalClientId } = await response.json();
+      const { order } = await response.json();
       return order;
     } catch (error) {
-      console.error('Error creating order:', error);
+      handleError(error);
       throw error;
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -80,40 +125,40 @@ const Checkout: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create PayPal payment');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create PayPal payment');
       }
 
       const { orderId } = await response.json();
       return orderId;
     } catch (error) {
-      console.error('Error creating PayPal order:', error);
+      handleError(error);
       throw error;
     }
   };
 
   const handlePayPalApprove = async (data: any) => {
     try {
+      setIsProcessing(true);
       const response = await fetch(`/api/orders/${data.orderID}/capture-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          paypalOrderId: data.orderID,
-        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to capture payment');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to process payment');
       }
 
-      const { order } = await response.json();
       clearCart();
-      navigate(`/orders/${order.id}/success`);
+      navigate(`/orders/${data.orderID}/success`);
     } catch (error) {
-      console.error('Error capturing payment:', error);
-      navigate('/checkout/error');
+      handleError(error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -134,6 +179,16 @@ const Checkout: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      
+      {isProcessing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-center mt-4">Processing your order...</p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
@@ -293,7 +348,9 @@ const Checkout: React.FC = () => {
               <PayPalButtons
                 createOrder={handlePayPalCreateOrder}
                 onApprove={handlePayPalApprove}
-                style={{ layout: 'vertical' }}
+                onError={(err) => handleError(err)}
+                style={{ layout: "horizontal" }}
+                disabled={isProcessing || cartState.items.length === 0}
               />
             </div>
           </div>

@@ -1,18 +1,42 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import useErrorHandler from '../hooks/useErrorHandler';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 const Cart: React.FC = () => {
   const { state, removeFromCart, updateQuantity } = useCart();
   const navigate = useNavigate();
+  const { handleError } = useErrorHandler();
 
   const handleQuantityChange = (id: string, quantity: number) => {
-    if (quantity < 1) return;
-    updateQuantity(id, quantity);
+    try {
+      if (quantity < 1) {
+        throw new Error('Quantity must be at least 1');
+      }
+      updateQuantity(id, quantity);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleRemoveItem = (id: string) => {
+    try {
+      removeFromCart(id);
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const handleCheckout = () => {
-    navigate('/checkout');
+    try {
+      if (state.items.length === 0) {
+        throw new Error('Your cart is empty');
+      }
+      navigate('/checkout');
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   if (state.items.length === 0) {
@@ -50,24 +74,32 @@ const Cart: React.FC = () => {
                 <div className="flex items-center mt-2">
                   <button
                     onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                    className="bg-gray-200 px-3 py-1 rounded-l"
+                    className="bg-gray-200 px-3 py-1 rounded-l hover:bg-gray-300 disabled:opacity-50"
+                    disabled={item.quantity <= 1}
                   >
                     -
                   </button>
                   <span className="px-4 py-1 bg-gray-100">{item.quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                    className="bg-gray-200 px-3 py-1 rounded-r"
+                    className="bg-gray-200 px-3 py-1 rounded-r hover:bg-gray-300 disabled:opacity-50"
+                    disabled={item.stock ? item.quantity >= item.stock : false}
                   >
                     +
                   </button>
                 </div>
+                {item.stock && item.quantity >= item.stock && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Maximum stock reached
+                  </p>
+                )}
               </div>
               <button
-                onClick={() => removeFromCart(item.id)}
+                onClick={() => handleRemoveItem(item.id)}
                 className="text-red-600 hover:text-red-800 ml-4"
+                aria-label={`Remove ${item.name} from cart`}
               >
-                Remove
+                <TrashIcon className="h-5 w-5" />
               </button>
             </div>
           ))}
@@ -98,7 +130,8 @@ const Cart: React.FC = () => {
           </div>
           <button
             onClick={handleCheckout}
-            className="w-full bg-blue-600 text-white py-3 rounded-md mt-6 hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-3 rounded-md mt-6 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={state.items.length === 0}
           >
             Proceed to Checkout
           </button>

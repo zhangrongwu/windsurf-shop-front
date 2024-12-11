@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useError } from './ErrorContext';
 
 interface CartItem {
   id: string;
@@ -6,6 +7,7 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  stock?: number;
 }
 
 interface CartState {
@@ -33,6 +35,10 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case 'ADD_ITEM': {
       const existingItem = state.items.find(item => item.id === action.payload.id);
       if (existingItem) {
+        // Check stock limit
+        if (action.payload.stock && existingItem.quantity >= action.payload.stock) {
+          throw new Error(`Sorry, only ${action.payload.stock} items available in stock.`);
+        }
         return {
           ...state,
           items: state.items.map(item =>
@@ -86,36 +92,81 @@ const CART_STORAGE_KEY = 'windsurf_shop_cart';
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
+  const { showError } = useError();
 
   useEffect(() => {
-    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-    if (savedCart) {
-      const { items, total } = JSON.parse(savedCart);
-      dispatch({ type: 'CLEAR_CART' });
-      items.forEach((item: CartItem) => {
-        dispatch({ type: 'ADD_ITEM', payload: item });
-      });
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        const { items, total } = JSON.parse(savedCart);
+        dispatch({ type: 'CLEAR_CART' });
+        items.forEach((item: CartItem) => {
+          dispatch({ type: 'ADD_ITEM', payload: item });
+        });
+      }
+    } catch (error) {
+      showError('Failed to load cart data. Please try refreshing the page.');
+      console.error('Error loading cart:', error);
     }
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      showError('Failed to save cart data. Your cart changes might not persist.');
+      console.error('Error saving cart:', error);
+    }
+  }, [state, showError]);
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
-    dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
+    try {
+      dispatch({ type: 'ADD_ITEM', payload: item as CartItem });
+    } catch (error) {
+      if (error instanceof Error) {
+        showError(error.message);
+      } else {
+        showError('Failed to add item to cart');
+      }
+    }
   };
 
   const removeFromCart = (id: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: id });
+    try {
+      dispatch({ type: 'REMOVE_ITEM', payload: id });
+    } catch (error) {
+      showError('Failed to remove item from cart');
+    }
   };
 
   const updateQuantity = (id: string, quantity: number) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+    try {
+      const item = state.items.find(item => item.id === id);
+      if (!item) {
+        throw new Error('Item not found in cart');
+      }
+      if (item.stock && quantity > item.stock) {
+        throw new Error(`Sorry, only ${item.stock} items available in stock.`);
+      }
+      if (quantity < 1) {
+        throw new Error('Quantity must be at least 1');
+      }
+      dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+    } catch (error) {
+      if (error instanceof Error) {
+        showError(error.message);
+      } else {
+        showError('Failed to update item quantity');
+      }
+    }
   };
 
   const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
+    try {
+      dispatch({ type: 'CLEAR_CART' });
+    } catch (error) {
+      showError('Failed to clear cart');
+    }
   };
 
   return (
