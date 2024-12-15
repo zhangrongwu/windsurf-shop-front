@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { Review, ProductReviewStats, CreateReviewInput } from '../types/review';
+import { reviewService } from '../services/reviewService';
+import ReviewList from '../components/Reviews/ReviewList';
+import ReviewForm from '../components/Reviews/ReviewForm';
 
 interface Product {
   id: string;
@@ -19,17 +23,31 @@ const ProductDetail: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewStats, setReviewStats] = useState<ProductReviewStats>({
+    averageRating: 0,
+    totalReviews: 0,
+    ratingDistribution: {},
+  });
   const { dispatch } = useCart();
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductData = async () => {
       try {
-        const response = await fetch(`/api/products/${id}`);
-        if (!response.ok) {
+        const [productRes, reviewsRes, statsRes] = await Promise.all([
+          fetch(`/api/products/${id}`),
+          reviewService.getProductReviews(id!),
+          reviewService.getProductReviewStats(id!)
+        ]);
+
+        if (!productRes.ok) {
           throw new Error('Product not found');
         }
-        const data = await response.json();
-        setProduct(data);
+
+        const productData = await productRes.json();
+        setProduct(productData);
+        setReviews(reviewsRes);
+        setReviewStats(statsRes);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -37,7 +55,9 @@ const ProductDetail: React.FC = () => {
       }
     };
 
-    fetchProduct();
+    if (id) {
+      fetchProductData();
+    }
   }, [id]);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -59,6 +79,20 @@ const ProductDetail: React.FC = () => {
     });
 
     navigate('/cart');
+  };
+
+  const handleReviewSubmit = async (reviewData: CreateReviewInput) => {
+    try {
+      const newReview = await reviewService.createReview(reviewData);
+      setReviews([newReview, ...reviews]);
+      
+      // 更新评论统计
+      const newStats = await reviewService.getProductReviewStats(id!);
+      setReviewStats(newStats);
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      throw error;
+    }
   };
 
   if (loading) {
@@ -145,6 +179,12 @@ const ProductDetail: React.FC = () => {
             </p>
           )}
         </div>
+      </div>
+
+      {/* 产品评论部分 */}
+      <div className="mt-16 lg:col-span-2">
+        <ReviewList reviews={reviews} stats={reviewStats} />
+        <ReviewForm productId={id!} onSubmit={handleReviewSubmit} />
       </div>
     </div>
   );
