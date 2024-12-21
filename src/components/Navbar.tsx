@@ -1,106 +1,155 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ShoppingBagIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../contexts/CartContext';
-import { ShoppingCartIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../contexts/AuthContext';
 
-const Navbar: React.FC = () => {
+const navigation = [
+  { name: '首页', href: '/' },
+  { name: '产品', href: '/products' },
+  { name: '关于', href: '/about' },
+  { name: '联系', href: '/contact' },
+];
+
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { state: { items } } = useCart();
   const { user, logout } = useAuth();
-  const { state: cartState } = useCart();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
     <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-blue-600">
-              Windsurf Shop
-            </Link>
-            <div className="ml-10 space-x-4">
-              <Link
-                to="/products"
-                className="text-gray-700 hover:text-blue-600"
-              >
-                Products
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link to="/" className="text-2xl font-bold text-primary-600">
+                WindsurfShop
               </Link>
-              {user && (
+            </div>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              {navigation.map((item) => (
                 <Link
-                  to="/orders"
-                  className="text-gray-700 hover:text-blue-600"
+                  key={item.name}
+                  to={item.href}
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-primary-600"
                 >
-                  Orders
+                  {item.name}
                 </Link>
-              )}
-              {user?.role === 'ADMIN' && (
-                <Link
-                  to="/admin"
-                  className="text-gray-700 hover:text-blue-600"
-                >
-                  Admin
-                </Link>
-              )}
+              ))}
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link
-              to="/cart"
-              className="relative text-gray-700 hover:text-blue-600"
-            >
-              <ShoppingCartIcon className="h-6 w-6" />
-              {cartState.items.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartState.items.length}
+          
+          <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+            <Link to="/cart" className="relative p-2">
+              <ShoppingBagIcon className="h-6 w-6 text-gray-600 hover:text-primary-600" />
+              {items.length > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-primary-600 rounded-full">
+                  {items.length}
                 </span>
               )}
             </Link>
+
             {user ? (
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
-                  <span>{user.name}</span>
-                  <ChevronDownIcon className="h-4 w-4" />
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 invisible group-hover:visible">
+              <>
+                <Link
+                  to="/profile"
+                  className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                >
+                  个人中心
+                </Link>
+                {user.role === 'admin' && (
                   <Link
-                    to="/orders"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    to="/admin"
+                    className="text-sm font-medium text-gray-900 hover:text-primary-600"
                   >
-                    My Orders
+                    管理后台
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
+                )}
+                <button
+                  onClick={logout}
+                  className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                >
+                  退出登录
+                </button>
+              </>
             ) : (
-              <div className="space-x-4">
-                <Link
-                  to="/login"
-                  className="text-gray-700 hover:text-blue-600"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                >
-                  Register
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                className="text-sm font-medium text-gray-900 hover:text-primary-600"
+              >
+                登录
+              </Link>
             )}
           </div>
+
+          <div className="flex items-center sm:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+            >
+              <span className="sr-only">打开菜单</span>
+              {isOpen ? (
+                <XMarkIcon className="block h-6 w-6" />
+              ) : (
+                <Bars3Icon className="block h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
+        <div className="pt-2 pb-3 space-y-1">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-primary-500"
+              onClick={() => setIsOpen(false)}
+            >
+              {item.name}
+            </Link>
+          ))}
+          {user ? (
+            <>
+              <Link
+                to="/profile"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-primary-500"
+                onClick={() => setIsOpen(false)}
+              >
+                个人中心
+              </Link>
+              {user.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-primary-500"
+                  onClick={() => setIsOpen(false)}
+                >
+                  管理后台
+                </Link>
+              )}
+              <button
+                onClick={() => {
+                  logout();
+                  setIsOpen(false);
+                }}
+                className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-primary-500"
+              >
+                退出登录
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-primary-500"
+              onClick={() => setIsOpen(false)}
+            >
+              登录
+            </Link>
+          )}
         </div>
       </div>
     </nav>
   );
-};
-
-export default Navbar;
+}

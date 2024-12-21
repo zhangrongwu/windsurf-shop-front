@@ -1,193 +1,137 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
-import { Review, ProductReviewStats, CreateReviewInput } from '../types/review';
-import { reviewService } from '../services/reviewService';
-import ReviewList from '../components/Reviews/ReviewList';
-import ReviewForm from '../components/Reviews/ReviewForm';
+import { useCart } from '../context/CartContext';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  stock: number;
-  specifications: Record<string, string>;
-}
+// Mock product data - in a real app, this would come from an API
+const products = [
+  {
+    id: 1,
+    name: 'Pro Windsurf Board',
+    price: 999.99,
+    image: 'https://placehold.co/600x400',
+    category: 'Boards',
+    description: 'Professional grade windsurfing board for experienced riders.',
+    features: [
+      'Lightweight construction',
+      'Optimal shape for speed',
+      'Durable materials',
+      'Professional design',
+    ],
+    specifications: {
+      length: '250cm',
+      width: '60cm',
+      volume: '135L',
+      weight: '8kg',
+    },
+  },
+  // Add more products as needed
+];
 
-const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+export default function ProductDetail() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | null>(null);
+  const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewStats, setReviewStats] = useState<ProductReviewStats>({
-    averageRating: 0,
-    totalReviews: 0,
-    ratingDistribution: {},
-  });
-  const { dispatch } = useCart();
 
-  useEffect(() => {
-    const fetchProductData = async () => {
-      try {
-        const [productRes, reviewsRes, statsRes] = await Promise.all([
-          fetch(`/api/products/${id}`),
-          reviewService.getProductReviews(id!),
-          reviewService.getProductReviewStats(id!)
-        ]);
+  const product = products.find(p => p.id === parseInt(id));
 
-        if (!productRes.ok) {
-          throw new Error('Product not found');
-        }
-
-        const productData = await productRes.json();
-        setProduct(productData);
-        setReviews(reviewsRes);
-        setReviewStats(statsRes);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchProductData();
-    }
-  }, [id]);
-
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setQuantity(parseInt(e.target.value));
-  };
+  if (!product) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Product not found</h2>
+          <button
+            onClick={() => navigate('/products')}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+          >
+            Back to Products
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleAddToCart = () => {
-    if (!product) return;
-
-    dispatch({
-      type: 'ADD_ITEM',
-      payload: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        quantity,
-      },
-    });
-
+    addToCart({ ...product, quantity });
     navigate('/cart');
   };
 
-  const handleReviewSubmit = async (reviewData: CreateReviewInput) => {
-    try {
-      const newReview = await reviewService.createReview(reviewData);
-      setReviews([newReview, ...reviews]);
-      
-      // 更新评论统计
-      const newStats = await reviewService.getProductReviewStats(id!);
-      setReviewStats(newStats);
-    } catch (error) {
-      console.error('Failed to submit review:', error);
-      throw error;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-600">{error || 'Product not found'}</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="relative">
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full rounded-lg shadow-lg"
-          />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
-            {product.name}
-          </h1>
-          <div className="text-2xl font-bold text-blue-600 mb-4">
-            ${product.price.toFixed(2)}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+        {/* Image gallery */}
+        <div className="flex flex-col">
+          <div className="w-full aspect-w-1 aspect-h-1 rounded-lg overflow-hidden">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-center object-cover"
+            />
           </div>
-          <p className="text-gray-600 mb-6">{product.description}</p>
+        </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">Specifications</h2>
-            <div className="grid grid-cols-2 gap-4">
+        {/* Product info */}
+        <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">{product.name}</h1>
+          
+          <div className="mt-3">
+            <h2 className="sr-only">Product information</h2>
+            <p className="text-3xl text-gray-900">${product.price}</p>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="sr-only">Description</h3>
+            <div className="text-base text-gray-700">{product.description}</div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center">
+              <h3 className="text-sm text-gray-600">Quantity:</h3>
+              <select
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="ml-3 rounded-md border border-gray-300"
+              >
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={handleAddToCart}
+              className="mt-6 w-full bg-primary-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              Add to Cart
+            </button>
+          </div>
+
+          <div className="mt-8 border-t border-gray-200 pt-8">
+            <h3 className="text-sm font-medium text-gray-900">Features</h3>
+            <div className="mt-4">
+              <ul className="pl-4 list-disc text-sm space-y-2">
+                {product.features.map((feature) => (
+                  <li key={feature} className="text-gray-600">{feature}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-8 border-t border-gray-200 pt-8">
+            <h3 className="text-sm font-medium text-gray-900">Specifications</h3>
+            <div className="mt-4 space-y-2">
               {Object.entries(product.specifications).map(([key, value]) => (
-                <div key={key}>
-                  <span className="font-medium text-gray-700">{key}:</span>{' '}
-                  <span className="text-gray-600">{value}</span>
+                <div key={key} className="flex justify-between text-sm">
+                  <span className="text-gray-500 capitalize">{key}:</span>
+                  <span className="text-gray-900">{value}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="mb-6">
-            <label htmlFor="quantity" className="block text-gray-700 mb-2">
-              Quantity
-            </label>
-            <select
-              id="quantity"
-              value={quantity}
-              onChange={handleQuantityChange}
-              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              disabled={product.stock === 0}
-            >
-              {[...Array(Math.min(product.stock, 10))].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className={`w-full py-3 px-6 rounded-md ${
-              product.stock === 0
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
-          >
-            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-          </button>
-
-          {product.stock > 0 && product.stock <= 5 && (
-            <p className="mt-2 text-red-600">
-              Only {product.stock} items left in stock!
-            </p>
-          )}
         </div>
-      </div>
-
-      {/* 产品评论部分 */}
-      <div className="mt-16 lg:col-span-2">
-        <ReviewList reviews={reviews} stats={reviewStats} />
-        <ReviewForm productId={id!} onSubmit={handleReviewSubmit} />
       </div>
     </div>
   );
-};
-
-export default ProductDetail;
+}

@@ -1,12 +1,45 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import ApiService from '../services/api';
 
-const AuthContext = createContext();
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<User>;
+  register: (userData: RegisterData) => Promise<User>;
+  logout: () => void;
+  updateProfile: (userData: UpdateProfileData) => Promise<User>;
+}
+
+interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+}
+
+interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -27,27 +60,27 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string): Promise<User> => {
     try {
       setError(null);
       const { token, user } = await ApiService.login(email, password);
       localStorage.setItem('token', token);
       setUser(user);
       return user;
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       throw error;
     }
   };
 
-  const register = async (userData) => {
+  const register = async (userData: RegisterData): Promise<User> => {
     try {
       setError(null);
       const { token, user } = await ApiService.register(userData);
       localStorage.setItem('token', token);
       setUser(user);
       return user;
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       throw error;
     }
@@ -58,13 +91,13 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const updateProfile = async (userData) => {
+  const updateProfile = async (userData: UpdateProfileData): Promise<User> => {
     try {
       setError(null);
       const updatedUser = await ApiService.updateUserProfile(userData);
       setUser(updatedUser);
       return updatedUser;
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       throw error;
     }
@@ -87,7 +120,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

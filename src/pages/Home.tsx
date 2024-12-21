@@ -1,205 +1,124 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Home: React.FC = () => {
-  const features = [
-    {
-      title: 'Premium Equipment',
-      description: 'High-quality windsurfing gear from top brands',
-      icon: (
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: 'Expert Advice',
-      description: 'Get guidance from experienced windsurfers',
-      icon: (
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: 'Fast Shipping',
-      description: 'Quick delivery worldwide with tracking',
-      icon: (
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
-        </svg>
-      ),
-    },
-  ];
+const featuredProducts = [
+  {
+    id: 1,
+    name: 'Windsurf Board Pro X',
+    description: 'High-performance windsurf board for advanced riders',
+    price: 1299.99,
+    image: 'https://placehold.co/600x400?text=Windsurf+Board'
+  },
+  {
+    id: 2,
+    name: 'Sail Rider Elite',
+    description: 'Lightweight and durable windsurf sail',
+    price: 599.99,
+    image: 'https://placehold.co/600x400?text=Windsurf+Sail'
+  },
+  {
+    id: 3,
+    name: 'Windsurf Starter Kit',
+    description: 'Perfect package for beginners',
+    price: 1499.99,
+    image: 'https://placehold.co/600x400?text=Starter+Kit'
+  }
+];
 
-  const categories = [
-    {
-      name: 'Boards',
-      image: '/images/categories/boards.jpg',
-      description: 'Find the perfect board for your style',
-      link: '/products?category=boards',
-    },
-    {
-      name: 'Sails',
-      image: '/images/categories/sails.jpg',
-      description: 'High-performance sails for all conditions',
-      link: '/products?category=sails',
-    },
-    {
-      name: 'Accessories',
-      image: '/images/categories/accessories.jpg',
-      description: 'Essential gear and accessories',
-      link: '/products?category=accessories',
-    },
-  ];
-
+function Home() {
   return (
     <div className="bg-white">
-      {/* Hero Section */}
-      <div className="relative bg-gray-900">
-        <div className="absolute inset-0">
-          <img
-            className="w-full h-full object-cover"
-            src="/images/hero-bg.jpg"
-            alt="Windsurfing"
-          />
-          <div className="absolute inset-0 bg-gray-900 opacity-75"></div>
-        </div>
-        <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Your Adventure Starts Here
-          </h1>
-          <p className="mt-6 text-xl text-gray-300 max-w-3xl">
-            Discover our premium selection of windsurfing equipment. Whether you're
-            a beginner or a pro, we have everything you need to catch the perfect
-            wave.
-          </p>
-          <div className="mt-10">
-            <Link
-              to="/products"
-              className="inline-block bg-blue-600 border border-transparent py-3 px-8 rounded-md font-medium text-white hover:bg-blue-700"
-            >
-              Shop Now
-            </Link>
+      <div className="relative overflow-hidden">
+        <div className="pt-16 pb-80 sm:pt-24 sm:pb-40 lg:pt-40 lg:pb-48">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:static">
+            <div className="sm:max-w-lg">
+              <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl">
+                Ride the Waves with Windsurf Shop
+              </h1>
+              <p className="mt-4 text-xl text-gray-500">
+                Discover top-quality windsurfing gear for all skill levels. From beginner to pro, we've got you covered.
+              </p>
+            </div>
+            <div>
+              <div className="mt-10">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none lg:absolute lg:inset-y-0 lg:max-w-7xl lg:mx-auto lg:w-full"
+                >
+                  <div className="absolute transform sm:left-1/2 sm:top-0 sm:translate-x-8 lg:left-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:translate-x-8">
+                    <div className="flex items-center space-x-6 lg:space-x-8">
+                      <div className="flex-shrink-0 grid grid-cols-1 gap-y-6 lg:gap-y-8">
+                        <div className="w-44 h-64 rounded-lg overflow-hidden sm:opacity-0 lg:opacity-100">
+                          <img
+                            src="https://placehold.co/600x400?text=Windsurf+Scene"
+                            alt="Windsurf scene"
+                            className="w-full h-full object-center object-cover"
+                          />
+                        </div>
+                        <div className="w-44 h-64 rounded-lg overflow-hidden">
+                          <img
+                            src="https://placehold.co/600x400?text=Windsurf+Scene"
+                            alt="Windsurf scene"
+                            className="w-full h-full object-center object-cover"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Link
+                  to="/products"
+                  className="inline-block text-center bg-indigo-600 border border-transparent rounded-md py-3 px-8 font-medium text-white hover:bg-indigo-700"
+                >
+                  Shop Collection
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="py-16 bg-gray-50">
+      <div className="bg-gray-100 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:text-center">
-            <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">
-              Why Choose Us
-            </h2>
+            <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase">Featured Products</h2>
             <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-              Everything you need for windsurfing
+              Gear Up for Your Next Adventure
             </p>
           </div>
 
           <div className="mt-10">
-            <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
-              {features.map((feature) => (
-                <div key={feature.title} className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
-                    {feature.icon}
+            <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+              {featuredProducts.map((product) => (
+                <div key={product.id} className="group relative bg-white p-6 rounded-lg shadow-md">
+                  <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-center object-cover lg:w-full lg:h-full"
+                    />
                   </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">
-                    {feature.title}
-                  </p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    {feature.description}
-                  </p>
+                  <div className="mt-4 flex justify-between">
+                    <div>
+                      <h3 className="text-sm text-gray-700">
+                        <Link to={`/product/${product.id}`}>
+                          <span aria-hidden="true" className="absolute inset-0" />
+                          {product.name}
+                        </Link>
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">{product.description}</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">${product.price}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Categories Section */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
-          <div className="sm:flex sm:items-baseline sm:justify-between">
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
-              Shop by Category
-            </h2>
-            <Link
-              to="/products"
-              className="hidden text-sm font-semibold text-blue-600 hover:text-blue-500 sm:block"
-            >
-              Browse all categories<span aria-hidden="true"> &rarr;</span>
-            </Link>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3">
-            {categories.map((category) => (
-              <div
-                key={category.name}
-                className="group relative rounded-lg overflow-hidden"
-              >
-                <div className="relative h-80 w-full overflow-hidden rounded-lg bg-white group-hover:opacity-75 sm:aspect-w-2 sm:aspect-h-1 sm:h-64 lg:aspect-w-1 lg:aspect-h-1">
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="h-full w-full object-cover object-center"
-                  />
-                </div>
-                <h3 className="mt-6 text-sm text-gray-500">
-                  <Link to={category.link}>
-                    <span className="absolute inset-0" />
-                    {category.name}
-                  </Link>
-                </h3>
-                <p className="text-base font-semibold text-gray-900">
-                  {category.description}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 sm:hidden">
-            <Link
-              to="/products"
-              className="block text-sm font-semibold text-blue-600 hover:text-blue-500"
-            >
-              Browse all categories<span aria-hidden="true"> &rarr;</span>
-            </Link>
-          </div>
-        </div>
-      </div>
     </div>
   );
-};
+}
 
 export default Home;

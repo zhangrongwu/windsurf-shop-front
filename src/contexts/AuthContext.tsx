@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../lib/api';
+import authService, { AuthResponse } from '../services/auth';
 
 interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  isVerified: boolean;
+  name: string;
+  role: string;
 }
 
 interface AuthContextType {
@@ -16,8 +15,7 @@ interface AuthContextType {
   register: (data: {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
+    name: string;
   }) => Promise<void>;
   logout: () => void;
   resendVerification: (email: string) => Promise<void>;
@@ -32,28 +30,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const { user } = await authApi.me();
-          setUser(user);
-        } catch (error) {
-          console.error('Auth check error:', error);
-          localStorage.removeItem('token');
-        }
-      }
-      setLoading(false);
-    };
-
-    checkAuth();
+    // 检查本地存储中的用户信息
+    const storedUser = authService.getUser();
+    if (storedUser) {
+      setUser(storedUser);
+    }
+    setLoading(false);
   }, []);
+
+  const handleAuthResponse = (response: AuthResponse) => {
+    authService.setAuth(response);
+    setUser(response.user);
+  };
 
   const login = async (email: string, password: string) => {
     try {
-      const { user, token } = await authApi.login({ email, password });
-      localStorage.setItem('token', token);
-      setUser(user);
+      const response = await authService.login({ email, password });
+      handleAuthResponse(response);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -63,13 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = async (data: {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
+    name: string;
   }) => {
     try {
-      const { user, token } = await authApi.register(data);
-      localStorage.setItem('token', token);
-      setUser(user);
+      const response = await authService.register(data);
+      handleAuthResponse(response);
     } catch (error) {
       console.error('Register error:', error);
       throw error;
@@ -78,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resendVerification = async (email: string) => {
     try {
-      await authApi.resendVerification(email);
+      await authService.resendVerification(email);
     } catch (error) {
       console.error('Resend verification error:', error);
       throw error;
@@ -86,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    authService.logout();
     setUser(null);
   };
 
@@ -98,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         register,
         logout,
-        resendVerification,
+        resendVerification
       }}
     >
       {children}
