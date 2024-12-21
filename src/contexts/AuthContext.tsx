@@ -1,18 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../lib/api';
 
 interface User {
   id: string;
   email: string;
-  name: string;
-  role: 'USER' | 'ADMIN';
+  firstName: string;
+  lastName: string;
+  isVerified: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) => Promise<void>;
   logout: () => void;
+  resendVerification: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,18 +36,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await fetch('/api/auth/me', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-          } else {
-            localStorage.removeItem('token');
-          }
+          const { user } = await authApi.me();
+          setUser(user);
         } catch (error) {
           console.error('Auth check error:', error);
           localStorage.removeItem('token');
@@ -52,41 +50,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to login');
+    try {
+      const { user, token } = await authApi.login({ email, password });
+      localStorage.setItem('token', token);
+      setUser(user);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-
-    const { user, token } = await response.json();
-    localStorage.setItem('token', token);
-    setUser(user);
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to register');
+  const register = async (data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) => {
+    try {
+      const { user, token } = await authApi.register(data);
+      localStorage.setItem('token', token);
+      setUser(user);
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
     }
+  };
 
-    const { user, token } = await response.json();
-    localStorage.setItem('token', token);
-    setUser(user);
+  const resendVerification = async (email: string) => {
+    try {
+      await authApi.resendVerification(email);
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -102,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         register,
         logout,
+        resendVerification,
       }}
     >
       {children}
