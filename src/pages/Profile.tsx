@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import ApiService from '../services/api';
 import ChangePassword from '../components/ChangePassword';
+
+interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+}
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
@@ -14,11 +26,11 @@ export default function Profile() {
     country: user?.country || '',
     postalCode: user?.postalCode || '',
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -28,13 +40,17 @@ export default function Profile() {
       await updateProfile(formData);
       setSuccess('Profile updated successfully');
     } catch (error) {
-      setError(error.message || 'Failed to update profile');
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to update profile');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,

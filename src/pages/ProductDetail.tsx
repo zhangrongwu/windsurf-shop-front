@@ -1,60 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-
-// Mock product data - in a real app, this would come from an API
-const products = [
-  {
-    id: 1,
-    name: 'Pro Windsurf Board',
-    price: 999.99,
-    image: 'https://placehold.co/600x400',
-    category: 'Boards',
-    description: 'Professional grade windsurfing board for experienced riders.',
-    features: [
-      'Lightweight construction',
-      'Optimal shape for speed',
-      'Durable materials',
-      'Professional design',
-    ],
-    specifications: {
-      length: '250cm',
-      width: '60cm',
-      volume: '135L',
-      weight: '8kg',
-    },
-  },
-  // Add more products as needed
-];
+import { useCart } from '../contexts/CartContext';
+import { Product } from '../types/product';
+import ApiService from '../services/api';
 
 export default function ProductDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const product = products.find(p => p.id === parseInt(id));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        if (!id) throw new Error('Product ID is required');
+        const productId = parseInt(id);
+        if (isNaN(productId)) throw new Error('Invalid product ID');
+        const data = await ApiService.getProduct(productId);
+        setProduct(data);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to fetch product');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart({ ...product, quantity });
+      navigate('/cart');
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-600 text-center py-8">{error}</div>;
+  }
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">Product not found</h2>
-          <button
-            onClick={() => navigate('/products')}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-          >
-            Back to Products
-          </button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-gray-600">Product not found.</p>
       </div>
     );
   }
-
-  const handleAddToCart = () => {
-    addToCart({ ...product, quantity });
-    navigate('/cart');
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

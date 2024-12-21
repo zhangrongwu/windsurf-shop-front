@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService, { AuthResponse } from '../services/auth';
+import { useNavigate } from 'react-router-dom';
+import { useError } from './ErrorContext';
 
 interface User {
   id: string;
@@ -11,91 +12,19 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: {
-    email: string;
-    password: string;
-    name: string;
-  }) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => void;
-  resendVerification: (email: string) => Promise<void>;
+  isAuthenticated: () => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+}
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // 检查本地存储中的用户信息
-    const storedUser = authService.getUser();
-    if (storedUser) {
-      setUser(storedUser);
-    }
-    setLoading(false);
-  }, []);
-
-  const handleAuthResponse = (response: AuthResponse) => {
-    authService.setAuth(response);
-    setUser(response.user);
-  };
-
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await authService.login({ email, password });
-      handleAuthResponse(response);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  };
-
-  const register = async (data: {
-    email: string;
-    password: string;
-    name: string;
-  }) => {
-    try {
-      const response = await authService.register(data);
-      handleAuthResponse(response);
-    } catch (error) {
-      console.error('Register error:', error);
-      throw error;
-    }
-  };
-
-  const resendVerification = async (email: string) => {
-    try {
-      await authService.resendVerification(email);
-    } catch (error) {
-      console.error('Resend verification error:', error);
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        register,
-        logout,
-        resendVerification
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -103,4 +32,100 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { showError } = useError();
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // 验证 token 并获取用户信息
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          localStorage.removeItem('token');
+        }
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (data: RegisterData) => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const { token, user: userData } = await response.json();
+      localStorage.setItem('token', token);
+      setUser(userData);
+      navigate('/');
+    } catch (error: any) {
+      showError(error.message || 'Registration failed');
+      throw error;
+    }
+  };
+
+  const login = async (credentials: { email: string; password: string }) => {
+    try {
+      const response = await ApiService.login(credentials);
+      setUser(response.user);
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    navigate('/login');
+  };
+
+  const isAuthenticated = () => {
+    return !!user;
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        register,
+        login,
+        logout,
+        isAuthenticated,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

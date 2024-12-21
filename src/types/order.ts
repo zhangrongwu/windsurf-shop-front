@@ -1,11 +1,8 @@
 export type OrderStatus =
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'PROCESSING'
-  | 'SHIPPED'
-  | 'DELIVERED'
-  | 'CANCELLED'
-  | 'RETURNED';
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'cancelled';
 
 export type ReturnStatus =
   | 'REQUESTED'
@@ -15,12 +12,11 @@ export type ReturnStatus =
   | 'REFUNDED';
 
 export interface OrderItem {
-  id: string;
-  productId: string;
-  productName: string;
+  id: number;
+  name: string;
   quantity: number;
   price: number;
-  image: string;
+  image?: string;
 }
 
 export interface OrderTracking {
@@ -45,35 +41,18 @@ export interface ReturnRequest {
 }
 
 export interface Order {
-  id: string;
-  userId: string;
+  id: number;
+  customerName: string;
+  customerEmail: string;
   items: OrderItem[];
-  status: OrderStatus;
-  shippingAddress: {
-    firstName: string;
-    lastName: string;
-    addressLine1: string;
-    addressLine2?: string;
-    city: string;
-    state: string;
-    country: string;
-    postalCode: string;
-    phone: string;
-  };
-  shippingMethod: {
-    name: string;
-    price: number;
-    estimatedDays: number;
-  };
-  tracking?: OrderTracking[];
-  returnRequests?: ReturnRequest[];
-  subtotal: number;
-  shippingCost: number;
-  discount: number;
-  tax: number;
   total: number;
-  createdAt: Date;
-  updatedAt: Date;
+  status: OrderStatus;
+  createdAt: string;
+  shippingAddress: string;
+}
+
+export interface OrderStatusType {
+  status: Order['status'];
 }
 
 export interface CreateReturnRequestInput {

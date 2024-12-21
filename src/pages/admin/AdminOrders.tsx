@@ -1,33 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  EyeIcon, 
-  CheckIcon, 
-  XMarkIcon 
-} from '@heroicons/react/24/outline';
-import { OrderService } from '../../services/apiService';
+import { EyeIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Order } from '../../types/order';
+import OrderStatusBadge from '../../components/OrderStatusBadge';
+import ApiService from '../../services/api';
 
-const OrderStatusBadge = ({ status }) => {
-  const statusColors = {
-    'pending': 'bg-yellow-100 text-yellow-800',
-    'processing': 'bg-blue-100 text-blue-800',
-    'shipped': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-red-100 text-red-800'
-  };
-
-  return (
-    <span className={`
-      px-2 py-1 rounded-full text-xs
-      ${statusColors[status] || 'bg-gray-100 text-gray-800'}
-    `}>
-      {status}
-    </span>
-  );
-};
-
-function AdminOrders() {
-  const [orders, setOrders] = useState([]);
+export default function AdminOrders() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -35,30 +16,30 @@ function AdminOrders() {
 
   const fetchOrders = async () => {
     try {
-      const fetchedOrders = await OrderService.getAllOrders();
-      setOrders(fetchedOrders);
+      const response = await ApiService.getOrders();
+      setOrders(response);
       setLoading(false);
-    } catch (error) {
-      console.error('Failed to fetch orders', error);
+    } catch (err) {
+      setError('Failed to fetch orders');
+      console.error('Error fetching orders:', err);
       setLoading(false);
     }
   };
 
-  const handleViewOrderDetails = async (orderId) => {
-    try {
-      const orderDetails = await OrderService.getOrderDetails(orderId);
-      setSelectedOrder(orderDetails);
-    } catch (error) {
-      console.error('Failed to fetch order details', error);
+  const handleViewOrderDetails = (orderId: number) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setSelectedOrder(order);
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId: number, newStatus: Order['status']) => {
     try {
-      await OrderService.updateOrderStatus(orderId, newStatus);
-      fetchOrders(); // Refresh orders after update
-    } catch (error) {
-      console.error('Failed to update order status', error);
+      await ApiService.updateOrderStatus(orderId, newStatus);
+      fetchOrders();
+    } catch (err) {
+      setError('Failed to update order status');
+      console.error('Error updating order status:', err);
     }
   };
 
@@ -66,8 +47,13 @@ function AdminOrders() {
     return <div>Loading orders...</div>;
   }
 
+  if (error) {
+    return <div className="text-red-600 p-4">{error}</div>;
+  }
+
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Orders Management</h1>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
       </div>
@@ -183,5 +169,3 @@ function AdminOrders() {
     </div>
   );
 }
-
-export default AdminOrders;

@@ -1,34 +1,42 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ApiService from '../services/api';
 
-export default function ResetPassword() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const token = new URLSearchParams(location.search).get('token');
+interface ResetPasswordFormData {
+  password: string;
+  confirmPassword: string;
+}
 
-  const [formData, setFormData] = useState({
+export default function ResetPassword() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const token = searchParams.get('token');
+
+  const [formData, setFormData] = useState<ResetPasswordFormData>({
     password: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
     }
 
     if (!token) {
-      return setError('Invalid reset token');
+      setError('Invalid or missing reset token');
+      setLoading(false);
+      return;
     }
-
-    setLoading(true);
 
     try {
       await ApiService.resetPassword(token, formData.password);
@@ -37,13 +45,17 @@ export default function ResetPassword() {
         navigate('/login');
       }, 2000);
     } catch (error) {
-      setError(error.message || 'Failed to reset password');
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to reset password');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -59,7 +71,7 @@ export default function ResetPassword() {
             <div className="flex">
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">
-                  Invalid reset link. Please request a new password reset.
+                  Invalid or expired reset link.
                 </h3>
               </div>
             </div>

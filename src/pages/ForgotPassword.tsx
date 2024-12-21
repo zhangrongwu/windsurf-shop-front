@@ -4,11 +4,11 @@ import ApiService from '../services/api';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setMessage('');
@@ -16,10 +16,14 @@ export default function ForgotPassword() {
 
     try {
       await ApiService.forgotPassword(email);
-      setMessage('Password reset instructions have been sent to your email');
+      setMessage('Check your email for password reset instructions');
       setEmail('');
-    } catch (error) {
-      setError(error.message || 'Failed to send reset email');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to send reset email');
+      }
     } finally {
       setLoading(false);
     }

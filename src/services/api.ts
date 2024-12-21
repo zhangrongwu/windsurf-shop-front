@@ -1,4 +1,11 @@
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
+import { Product } from '../types/product';
+import { Order } from '../types/order';
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
 interface LoginResponse {
   token: string;
@@ -6,7 +13,7 @@ interface LoginResponse {
 }
 
 interface User {
-  id: string;
+  id: number;
   email: string;
   name: string;
   role: string;
@@ -18,76 +25,145 @@ interface RegisterData {
   name: string;
 }
 
-interface UpdateProfileData {
-  name?: string;
-  email?: string;
-  password?: string;
-}
+const apiClient = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-class ApiService {
-  private static instance: AxiosInstance = axios.create({
-    baseURL: '/api',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+const ApiService = {
+  // Auth
+  login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
+    try {
+      const response = await apiClient.post('/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  static {
-    this.instance.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
+  register: async (data: RegisterData): Promise<LoginResponse> => {
+    try {
+      const response = await apiClient.post('/auth/register', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-    this.instance.interceptors.response.use(
-      (response) => response.data,
-      (error) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
-        }
-        return Promise.reject(error.response?.data || error);
-      }
-    );
-  }
+  forgotPassword: async (email: string): Promise<void> => {
+    try {
+      await apiClient.post('/auth/forgot-password', { email });
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  // 认证相关
-  static async login(email: string, password: string): Promise<LoginResponse> {
-    return this.instance.post('/auth/login', { email, password });
-  }
+  resetPassword: async (token: string, password: string): Promise<void> => {
+    try {
+      await apiClient.post('/auth/reset-password', { token, password });
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  static async register(userData: RegisterData): Promise<LoginResponse> {
-    return this.instance.post('/auth/register', userData);
-  }
+  // Products
+  getProducts: async (): Promise<Product[]> => {
+    try {
+      const response = await apiClient.get('/products');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  static async getUserProfile(): Promise<User> {
-    return this.instance.get('/user/profile');
-  }
+  getProduct: async (productId: number): Promise<Product> => {
+    try {
+      const response = await apiClient.get(`/products/${productId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  static async updateUserProfile(userData: UpdateProfileData): Promise<User> {
-    return this.instance.put('/user/profile', userData);
-  }
+  createProduct: async (productData: Omit<Product, 'id'>): Promise<Product> => {
+    try {
+      const response = await apiClient.post('/products', productData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  // 密码重置相关方法
-  static async forgotPassword(email: string): Promise<void> {
-    return this.instance.post('/auth/forgot-password', { email });
-  }
+  updateProduct: async (productId: number, productData: Partial<Product>): Promise<Product> => {
+    try {
+      const response = await apiClient.put(`/products/${productId}`, productData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  static async resetPassword(token: string, password: string): Promise<void> {
-    return this.instance.post('/auth/reset-password', { token, password });
-  }
+  deleteProduct: async (productId: number): Promise<void> => {
+    try {
+      await apiClient.delete(`/products/${productId}`);
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  static async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    return this.instance.post('/auth/change-password', { currentPassword, newPassword });
-  }
-}
+  // Orders
+  getOrders: async (): Promise<Order[]> => {
+    try {
+      const response = await apiClient.get('/orders');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getOrderDetails: async (orderId: number): Promise<Order> => {
+    try {
+      const response = await apiClient.get(`/orders/${orderId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateOrderStatus: async (orderId: number, status: Order['status']): Promise<Order> => {
+    try {
+      const response = await apiClient.patch(`/orders/${orderId}`, { status });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Customer
+  getCustomerDetails: async (customerId: number): Promise<User> => {
+    try {
+      const response = await apiClient.get(`/customers/${customerId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateProfile: async (data: {
+    name?: string;
+    email?: string;
+    currentPassword?: string;
+    newPassword?: string;
+  }): Promise<User> => {
+    try {
+      const response = await apiClient.put('/auth/profile', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+};
 
 export default ApiService;

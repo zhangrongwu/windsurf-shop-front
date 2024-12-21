@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import ApiService from '../services/api';
+import { Order } from '../types/order';
 
 export default function Orders() {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -18,7 +19,11 @@ export default function Orders() {
       const response = await ApiService.getOrders();
       setOrders(response);
     } catch (err) {
-      setError('Failed to fetch orders');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to fetch orders');
+      }
       console.error('Error fetching orders:', err);
     } finally {
       setLoading(false);
@@ -52,7 +57,7 @@ export default function Orders() {
     );
   }
 
-  if (orders.length === 0) {
+  if (!orders.length) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">

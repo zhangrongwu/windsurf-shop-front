@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   PencilIcon, 
   TrashIcon 
 } from '@heroicons/react/24/outline';
+import { Product, ProductFormData } from '../../types/product';
+import ApiService from '../../services/api';
 
-const initialProducts = [
+const initialProducts: Product[] = [
   {
     id: 1,
     name: 'Pro Windsurf Board',
@@ -32,10 +34,31 @@ const initialProducts = [
   }
 ];
 
-function AdminProducts() {
-  const [products, setProducts] = useState(initialProducts);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+export default function AdminProducts() {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [selectedProduct, setSelectedProduct] = useState<ProductFormData>({
+    name: '',
+    category: '',
+    price: 0,
+    stock: 0,
+    brand: ''
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // fetchProducts();
+  }, []);
+
+  // const fetchProducts = async () => {
+  //   try {
+  //     const response = await ApiService.getProducts();
+  //     setProducts(response);
+  //   } catch (err) {
+  //     setError('Failed to fetch products');
+  //     console.error('Error fetching products:', err);
+  //   }
+  // };
 
   const handleAddProduct = () => {
     setSelectedProduct({
@@ -48,17 +71,17 @@ function AdminProducts() {
     setIsModalOpen(true);
   };
 
-  const handleEditProduct = (product) => {
+  const handleEditProduct = (product: Product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = (productId: number) => {
     setProducts(products.filter(p => p.id !== productId));
   };
 
   const handleSaveProduct = () => {
-    if (selectedProduct.id) {
+    if ('id' in selectedProduct) {
       // Edit existing product
       setProducts(products.map(p => 
         p.id === selectedProduct.id ? selectedProduct : p
@@ -73,6 +96,10 @@ function AdminProducts() {
     }
     setIsModalOpen(false);
   };
+
+  if (error) {
+    return <div className="text-red-600 p-4">{error}</div>;
+  }
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -219,5 +246,3 @@ function AdminProducts() {
     </div>
   );
 }
-
-export default AdminProducts;
