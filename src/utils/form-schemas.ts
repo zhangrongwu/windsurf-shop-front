@@ -5,11 +5,15 @@ export const addressSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  address: z.string().min(1, 'Address is required'),
+  addressLine1: z.string().min(1, 'Address is required'),
+  addressLine2: z.string().optional(),
+  address: z.string().optional(),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   zipCode: z.string().min(5, 'ZIP code must be at least 5 digits'),
+  postalCode: z.string().optional(),
   country: z.string().min(1, 'Country is required'),
+  isDefault: z.boolean().optional(),
 });
 
 export const loginSchema = z.object({

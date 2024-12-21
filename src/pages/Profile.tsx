@@ -4,21 +4,19 @@ import ApiService from '../services/api';
 import ChangePassword from '../components/ChangePassword';
 
 interface ProfileFormData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  phone: string;
-  address: string;
-  city: string;
-  country: string;
-  postalCode: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
 }
 
 export default function Profile() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState<ProfileFormData>({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
+    name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
     address: user?.address || '',
@@ -37,7 +35,10 @@ export default function Profile() {
     setLoading(true);
 
     try {
-      await updateProfile(formData);
+      await ApiService.updateProfile(formData);
+      if (updateUser) {
+        updateUser(formData);
+      }
       setSuccess('Profile updated successfully');
     } catch (error) {
       if (error instanceof Error) {
@@ -97,34 +98,20 @@ export default function Profile() {
               <div className="mt-5 md:mt-0 md:col-span-2">
                 <div className="grid grid-cols-6 gap-6">
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                      First name
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      Name
                     </label>
                     <input
                       type="text"
-                      name="firstName"
-                      id="firstName"
-                      value={formData.firstName}
+                      name="name"
+                      id="name"
+                      value={formData.name}
                       onChange={handleChange}
                       className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                     />
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                      Last name
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      id="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-4">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                       Email address
                     </label>
@@ -146,7 +133,7 @@ export default function Profile() {
                       type="tel"
                       name="phone"
                       id="phone"
-                      value={formData.phone}
+                      value={formData.phone || ''}
                       onChange={handleChange}
                       className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                     />
@@ -160,7 +147,7 @@ export default function Profile() {
                       type="text"
                       name="address"
                       id="address"
-                      value={formData.address}
+                      value={formData.address || ''}
                       onChange={handleChange}
                       className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                     />
@@ -174,7 +161,7 @@ export default function Profile() {
                       type="text"
                       name="city"
                       id="city"
-                      value={formData.city}
+                      value={formData.city || ''}
                       onChange={handleChange}
                       className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                     />
@@ -188,7 +175,7 @@ export default function Profile() {
                       type="text"
                       name="country"
                       id="country"
-                      value={formData.country}
+                      value={formData.country || ''}
                       onChange={handleChange}
                       className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                     />
@@ -202,7 +189,7 @@ export default function Profile() {
                       type="text"
                       name="postalCode"
                       id="postalCode"
-                      value={formData.postalCode}
+                      value={formData.postalCode || ''}
                       onChange={handleChange}
                       className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                     />

@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../context/CartContext';
 import useErrorHandler from '../hooks/useErrorHandler';
 import { TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { CartItem } from '../context/CartContext';
 
 const Wishlist: React.FC = () => {
   const { state, removeFromWishlist } = useWishlist();
@@ -21,12 +22,18 @@ const Wishlist: React.FC = () => {
 
   const handleMoveToCart = (item: any) => {
     try {
-      addToCart({
+      const cartItem: CartItem = {
         id: item.id,
         name: item.name,
         price: item.price,
         image: item.image,
-      });
+        quantity: 1,
+        category: item.category,
+        stock: item.stock,
+        brand: item.brand,
+        inStock: item.inStock
+      };
+      addToCart(cartItem);
       removeFromWishlist(item.id);
     } catch (error) {
       handleError(error);

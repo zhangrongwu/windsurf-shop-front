@@ -1,8 +1,37 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
+
+// Define interfaces for type safety
+interface Product {
+  id?: number;
+  name: string;
+  description?: string;
+  price: number;
+  [key: string]: any;
+}
+
+interface Order {
+  id?: number;
+  status: string;
+  [key: string]: any;
+}
+
+interface Customer {
+  id?: number;
+  name: string;
+  email: string;
+  [key: string]: any;
+}
+
+interface DashboardStats {
+  totalProducts: number;
+  totalOrders: number;
+  totalRevenue: number;
+  [key: string]: any;
+}
 
 // Create an axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -23,9 +52,9 @@ apiClient.interceptors.request.use(
 
 // Product Management Services
 export const ProductService = {
-  getAllProducts: async () => {
+  getAllProducts: async (): Promise<Product[]> => {
     try {
-      const response = await apiClient.get('/products');
+      const response: AxiosResponse<Product[]> = await apiClient.get('/products');
       return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -33,9 +62,9 @@ export const ProductService = {
     }
   },
 
-  createProduct: async (productData) => {
+  createProduct: async (productData: Product): Promise<Product> => {
     try {
-      const response = await apiClient.post('/products', productData);
+      const response: AxiosResponse<Product> = await apiClient.post('/products', productData);
       return response.data;
     } catch (error) {
       console.error('Error creating product:', error);
@@ -43,9 +72,9 @@ export const ProductService = {
     }
   },
 
-  updateProduct: async (productId, productData) => {
+  updateProduct: async (productId: number, productData: Product): Promise<Product> => {
     try {
-      const response = await apiClient.put(`/products/${productId}`, productData);
+      const response: AxiosResponse<Product> = await apiClient.put(`/products/${productId}`, productData);
       return response.data;
     } catch (error) {
       console.error('Error updating product:', error);
@@ -53,9 +82,9 @@ export const ProductService = {
     }
   },
 
-  deleteProduct: async (productId) => {
+  deleteProduct: async (productId: number): Promise<void> => {
     try {
-      const response = await apiClient.delete(`/products/${productId}`);
+      const response: AxiosResponse<void> = await apiClient.delete(`/products/${productId}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -66,9 +95,9 @@ export const ProductService = {
 
 // Order Management Services
 export const OrderService = {
-  getAllOrders: async () => {
+  getAllOrders: async (): Promise<Order[]> => {
     try {
-      const response = await apiClient.get('/orders');
+      const response: AxiosResponse<Order[]> = await apiClient.get('/orders');
       return response.data;
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -76,9 +105,9 @@ export const OrderService = {
     }
   },
 
-  getOrderDetails: async (orderId) => {
+  getOrderDetails: async (orderId: number): Promise<Order> => {
     try {
-      const response = await apiClient.get(`/orders/${orderId}`);
+      const response: AxiosResponse<Order> = await apiClient.get(`/orders/${orderId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching order details:', error);
@@ -86,9 +115,9 @@ export const OrderService = {
     }
   },
 
-  updateOrderStatus: async (orderId, status) => {
+  updateOrderStatus: async (orderId: number, status: string): Promise<Order> => {
     try {
-      const response = await apiClient.patch(`/orders/${orderId}`, { status });
+      const response: AxiosResponse<Order> = await apiClient.patch(`/orders/${orderId}`, { status });
       return response.data;
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -99,9 +128,9 @@ export const OrderService = {
 
 // Customer Management Services
 export const CustomerService = {
-  getAllCustomers: async () => {
+  getAllCustomers: async (): Promise<Customer[]> => {
     try {
-      const response = await apiClient.get('/customers');
+      const response: AxiosResponse<Customer[]> = await apiClient.get('/customers');
       return response.data;
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -109,9 +138,9 @@ export const CustomerService = {
     }
   },
 
-  getCustomerDetails: async (customerId) => {
+  getCustomerDetails: async (customerId: number): Promise<Customer> => {
     try {
-      const response = await apiClient.get(`/customers/${customerId}`);
+      const response: AxiosResponse<Customer> = await apiClient.get(`/customers/${customerId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching customer details:', error);
@@ -122,9 +151,9 @@ export const CustomerService = {
 
 // Dashboard Statistics Service
 export const DashboardService = {
-  getDashboardStats: async () => {
+  getDashboardStats: async (): Promise<DashboardStats> => {
     try {
-      const response = await apiClient.get('/dashboard/stats');
+      const response: AxiosResponse<DashboardStats> = await apiClient.get('/dashboard/stats');
       return response.data;
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);

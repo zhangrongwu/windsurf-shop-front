@@ -17,6 +17,11 @@ interface User {
   email: string;
   name: string;
   role: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
 }
 
 interface RegisterData {
@@ -63,6 +68,22 @@ const ApiService = {
   resetPassword: async (token: string, password: string): Promise<void> => {
     try {
       await apiClient.post('/auth/reset-password', { token, password });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    try {
+      const token = localStorage.getItem('token');
+      await apiClient.post('/auth/change-password', 
+        { currentPassword, newPassword },
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}` 
+          } 
+        }
+      );
     } catch (error) {
       throw error;
     }

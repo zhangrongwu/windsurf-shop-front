@@ -12,7 +12,7 @@ interface FormFieldProps<T extends FieldValues> {
   name: Path<T>;
   label?: string;
   register: UseFormRegister<T>;
-  rules?: RegisterOptions;
+  rules?: RegisterOptions<T, Path<T>>;
   error?: FieldError;
   type?: string;
   placeholder?: string;

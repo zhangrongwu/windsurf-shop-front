@@ -1,15 +1,15 @@
 import React from 'react';
 import { OrderTracking } from '../../types/order';
-import { CheckCircleIcon, TruckIcon, PackageIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, TruckIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 interface OrderTrackingProps {
   tracking: OrderTracking[];
 }
 
 const statusIcons = {
-  PENDING: PackageIcon,
+  PENDING: CubeIcon,
   CONFIRMED: CheckCircleIcon,
-  PROCESSING: PackageIcon,
+  PROCESSING: CubeIcon,
   SHIPPED: TruckIcon,
   DELIVERED: CheckCircleIcon,
   CANCELLED: CheckCircleIcon,

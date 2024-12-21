@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import ApiService from '../services/api';
 
-export default function ChangePassword() {
-  const [formData, setFormData] = useState({
+interface ChangePasswordForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export default function ChangePassword(): JSX.Element {
+  const [formData, setFormData] = useState<ChangePasswordForm>({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -19,7 +25,7 @@ export default function ChangePassword() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -42,7 +48,7 @@ export default function ChangePassword() {
         newPassword: '',
         confirmPassword: '',
       });
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message || 'Failed to change password');
     } finally {
       setLoading(false);

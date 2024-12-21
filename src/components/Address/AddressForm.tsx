@@ -152,7 +152,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
           >
             Cancel
           </Button>
-          <Button type="submit" loading={isLoading}>
+          <Button 
+            type="submit" 
+            variant="default"
+            loading={isLoading}
+          >
             {initialData ? 'Update' : 'Save'} Address
           </Button>
         </div>

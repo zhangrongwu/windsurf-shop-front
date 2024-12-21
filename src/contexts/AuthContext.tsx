@@ -1,27 +1,35 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useError } from './ErrorContext';
+import ApiService from '../services/api';
 
 interface User {
   id: string;
   email: string;
   name: string;
   role: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  register: (data: RegisterData) => Promise<void>;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: () => boolean;
+  updateUser?: (userData: Partial<User>) => Promise<void>;
 }
 
 interface RegisterData {
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
-  name: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,81 +56,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        // 验证 token 并获取用户信息
-        const response = await fetch('/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        } else {
-          localStorage.removeItem('token');
-        }
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        setUser(userData);
       }
+      setLoading(false);
     } catch (error) {
-      console.error('Auth check error:', error);
-    } finally {
       setLoading(false);
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (firstName: string, lastName: string, email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      const response = await ApiService.register({ 
+        firstName, 
+        lastName, 
+        email, 
+        password 
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
-      }
-
-      const { token, user: userData } = await response.json();
-      localStorage.setItem('token', token);
-      setUser(userData);
+      setUser(response.user);
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/');
-    } catch (error: any) {
-      showError(error.message || 'Registration failed');
+    } catch (error) {
+      showError('Registration failed');
       throw error;
     }
   };
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (email: string, password: string) => {
     try {
-      const response = await ApiService.login(credentials);
+      const response = await ApiService.login({ email, password });
       setUser(response.user);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
+      navigate('/');
     } catch (error) {
+      showError('Login failed');
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
     setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
   const isAuthenticated = () => {
-    return !!user;
+    return !!localStorage.getItem('token');
+  };
+
+  const updateUser = async (userData: Partial<User>) => {
+    try {
+      const updatedUser = await ApiService.updateUser(userData);
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      showError('Failed to update user profile');
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        register,
-        login,
-        logout,
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        loading, 
+        register, 
+        login, 
+        logout, 
         isAuthenticated,
+        updateUser
       }}
     >
       {children}

@@ -1,13 +1,16 @@
 export interface Product {
-  id: number;
+  id: number | string;
   name: string;
-  category: string;
+  category: { name: string };
   price: number;
   stock: number;
   brand: string;
   image?: string;
   description?: string;
   inStock: boolean;
+  images?: { url: string }[];
+  features?: string[];
+  specifications?: Record<string, string | number>;
 }
 
 export interface ProductFormData {
@@ -18,4 +21,5 @@ export interface ProductFormData {
   brand: string;
   image?: string;
   description?: string;
+  inStock?: boolean;
 }
