@@ -6,42 +6,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import { useError } from '../../contexts/ErrorContext';
 
-const initialProducts: Product[] = [
-  {
-    id: 1,
-    name: 'Pro Windsurf Board',
-    category: { name: 'Boards' },
-    price: 999.99,
-    stock: 15,
-    brand: 'WindMaster',
-    inStock: true,
-    description: 'High-performance windsurf board for advanced riders',
-    images: [{ url: '/placeholder-board.jpg' }],
-  },
-  {
-    id: 2,
-    name: 'Performance Sail',
-    category: { name: 'Sails' },
-    price: 599.99,
-    stock: 25,
-    brand: 'OceanPro',
-    inStock: true,
-    description: 'Lightweight and durable sail for optimal performance',
-    images: [{ url: '/placeholder-sail.jpg' }],
-  },
-  {
-    id: 3,
-    name: 'Carbon Mast',
-    category: { name: 'Equipment' },
-    price: 299.99,
-    stock: 10,
-    brand: 'WindTech',
-    inStock: true,
-    description: 'Ultra-lightweight carbon mast for maximum efficiency',
-    images: [{ url: '/placeholder-mast.jpg' }],
-  }
-];
-
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,16 +88,15 @@ export default function AdminProducts() {
       <div className="py-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-extrabold text-gray-900">Products</h2>
-          <button
-            onClick={() => {
-              setSelectedProduct(null);
-              setIsModalOpen(true);
-            }}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Product
-          </button>
+          {user?.role === 'ADMIN' && (
+            <Link
+              to="/admin/products/new"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Add Product
+            </Link>
+          )}
         </div>
 
         <div className="overflow-x-auto">

@@ -108,6 +108,15 @@ const ApiService = {
     }
   },
 
+  getProductById: async (id: string | number): Promise<Product> => {
+    try {
+      const response = await apiClient.get(`/products/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   createProduct: async (productData: Omit<Product, 'id'>): Promise<Product> => {
     try {
       const response = await apiClient.post('/products', productData);
